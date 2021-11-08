@@ -28,8 +28,7 @@ import java.nio.file.Files;
  * Created by song on 27/03/2017.
  */
 
-public class StreamRoomMessagesHandler implements CollectionHandler
-{
+public class StreamRoomMessagesHandler implements CollectionHandler {
     private MessageService messageService = Launcher.messageService;
     private RoomService roomService = Launcher.roomService;
     private ImageAttachmentService imageAttachmentService = Launcher.imageAttachmentService;
@@ -38,21 +37,17 @@ public class StreamRoomMessagesHandler implements CollectionHandler
     private Logger logger;
 
 
-    public StreamRoomMessagesHandler()
-    {
+    public StreamRoomMessagesHandler() {
         logger = Logger.getLogger(this.getClass());
     }
 
     @Override
-    public void handle(String eventName, Object data)
-    {
+    public void handle(String eventName, Object data) {
         JSONArray jsonArray = (JSONArray) data;
-        try
-        {
+        try {
             JSONObject obj = jsonArray.getJSONObject(0);
             String type = "";
-            if (obj.has("t"))
-            {
+            if (obj.has("t")) {
                 type = obj.getString("t");
             }
 
@@ -60,67 +55,43 @@ public class StreamRoomMessagesHandler implements CollectionHandler
             message.setId(obj.getString("_id"));
             message.setRoomId(obj.getString("rid"));
             // 处理消息内容
-            if (obj.getString("msg").startsWith("[ ]("))
-            {
+            if (obj.getString("msg").startsWith("[ ](")) {
                 message.setMessageContent(obj.getString("msg").replaceAll("\\[ \\]\\(.*\\)\\s*", ""));
-            }
-            else
-            {
+            } else {
                 message.setMessageContent(obj.getString("msg"));
             }
 
-            if (type.equals("au") || type.equals("uj"))
-            {
+            if (type.equals("au") || type.equals("uj")) {
                 message.setMessageContent(obj.getString("msg") + " 加入群聊");
                 message.setSystemMessage(true);
-            }
-            else if (type.equals("r"))
-            {
+            } else if (type.equals("r")) {
                 String creator = obj.getJSONObject("u").getString("username");
                 message.setMessageContent(creator + " 更改群名称为：" + obj.getString("msg"));
                 message.setSystemMessage(true);
-            }
-            else if (type.equals("ru"))
-            {
+            } else if (type.equals("ru")) {
                 message.setMessageContent(obj.getString("msg") + " 被移出群聊");
                 message.setSystemMessage(true);
-            }
-            else if (type.equals("ul"))
-            {
+            } else if (type.equals("ul")) {
                 message.setMessageContent(obj.getString("msg") + " 退出群聊");
                 message.setSystemMessage(true);
-            }
-            else if (type.equals("user-muted"))
-            {
+            } else if (type.equals("user-muted")) {
                 message.setMessageContent(obj.getString("msg") + " 被禁言");
                 message.setSystemMessage(true);
-            }
-            else if (type.equals("user-unmuted"))
-            {
+            } else if (type.equals("user-unmuted")) {
                 message.setMessageContent(obj.getString("msg") + " 被取消禁言");
                 message.setSystemMessage(true);
-            }
-            else if (type.equals("subscription-role-added"))
-            {
-                if (obj.getString("role").equals("owner"))
-                {
+            } else if (type.equals("subscription-role-added")) {
+                if (obj.getString("role").equals("owner")) {
                     message.setMessageContent(obj.getString("msg") + " 被赋予了 所有者 角色");
-                }
-                else if (obj.getString("role").equals("moderator"))
-                {
+                } else if (obj.getString("role").equals("moderator")) {
                     message.setMessageContent(obj.getString("msg") + " 被赋予了 主持 角色");
                 }
 
                 message.setSystemMessage(true);
-            }
-            else if (type.equals("subscription-role-removed"))
-            {
-                if (obj.getString("role").equals("owner"))
-                {
+            } else if (type.equals("subscription-role-removed")) {
+                if (obj.getString("role").equals("owner")) {
                     message.setMessageContent(obj.getString("msg") + " 被移除了 所有者 角色");
-                }
-                else if (obj.getString("role").equals("moderator"))
-                {
+                } else if (obj.getString("role").equals("moderator")) {
                     message.setMessageContent(obj.getString("msg") + " 被移除了 主持 角色");
                 }
                 message.setSystemMessage(true);
@@ -132,8 +103,7 @@ public class StreamRoomMessagesHandler implements CollectionHandler
             message.setUpdatedAt(obj.getJSONObject("_updatedAt").getLong("$date"));
             message.setNeedToResend(false);
 
-            if (obj.has("groupable"))
-            {
+            if (obj.has("groupable")) {
                 message.setGroupable(obj.getBoolean("groupable"));
             }
 
@@ -148,20 +118,16 @@ public class StreamRoomMessagesHandler implements CollectionHandler
                     && MainFrameActivity.CHAT_ROOM_OPEN_ID.equals(message.getRoomId());*/
 
             // 附件消息
-            if (obj.has("attachments") && !obj.getString("msg").startsWith("[ ]("))
-            {
-                if (obj.has("file") && obj.get("attachments") instanceof JSONArray)
-                {
+            if (obj.has("attachments") && !obj.getString("msg").startsWith("[ ](")) {
+                if (obj.has("file") && obj.get("attachments") instanceof JSONArray) {
                     JSONArray attachments = obj.getJSONArray("attachments");
-                    for (int j = 0; j < attachments.length(); j++)
-                    {
+                    for (int j = 0; j < attachments.length(); j++) {
                         JSONObject attachment = attachments.getJSONObject(j);
-                        if (attachment.has("image_url"))
-                        {
+                        if (attachment.has("image_url")) {
                             ImageAttachment imageAttachment = new ImageAttachment();
                             imageAttachment.setId(obj.getJSONObject("file").getString("_id"));
                             imageAttachment.setTitle(attachment.getString("title"));
-                            imageAttachment.setDescription(attachment.getString("description"));
+                            imageAttachment.setDescription(""); //attachment.getString("description"));
                             imageAttachment.setImageUrl(attachment.getString("image_url"));
                             imageAttachment.setImagesize(attachment.getLong("image_size"));
                             //imageAttachment.setWidth(attachment.getJSONObject("image_dimensions").getInt("width"));
@@ -171,54 +137,67 @@ public class StreamRoomMessagesHandler implements CollectionHandler
                             message.setImageAttachmentId(imageAttachment.getId());
                             message.setMessageContent("[图片]");
 
-                            // 查找是否有临时以FildId作为MessageId的消息
-                            Message tempMsg = messageService.findById(imageAttachment.getId());
+                            if (message.getSenderId().equals(currentUser.getUserId())){
+                                Thread.sleep(1000);
+                                String localMsgId = ChatPanel.getContext().localRemoteUploadMessageIdMap
+                                        .getOrDefault(imageAttachment.getId(), "");
+                                if(!"".equals(localMsgId)) {
+                                    // 查找是否有临时以FildId作为MessageId的消息
+                                    Message tempMsg = messageService.findById(localMsgId);
 
-                            if (tempMsg != null)
-                            {
-                                myUploadFile = true;
-                                ImageAttachment ia = imageAttachmentService.findById(tempMsg.getImageAttachmentId());
-                                imageAttachment.setTitle(ia.getTitle());
-                                //imageAttachment.setImageUrl(ia.getImageUrl());
-                                imageAttachment.setDescription(ia.getDescription());
+                                    if (tempMsg != null) {
+                                        myUploadFile = true;
+                                        ImageAttachment ia = imageAttachmentService.findById(tempMsg.getImageAttachmentId());
+                                        imageAttachment.setTitle(ia.getTitle());
+                                        //imageAttachment.setImageUrl(ia.getImageUrl());
+                                        imageAttachment.setDescription(ia.getDescription());
 
-                                message.setNeedToResend(false);
-                                message.setTimestamp(tempMsg.getTimestamp());
+                                        message.setNeedToResend(false);
+                                        message.setTimestamp(tempMsg.getTimestamp());
 
 
-                                // 删除临时文件消息
-                                messageService.delete(imageAttachment.getId());
+                                        // 删除临时文件消息
+                                        messageService.delete(localMsgId);
+                                        ChatPanel.getContext().localRemoteUploadMessageIdMap.remove(imageAttachment.getId());
+                                    }
+                                }
                             }
 
                             imageAttachmentService.insertOrUpdate(imageAttachment);
-                        }
-                        else
-                        {
+                        } else {
                             FileAttachment fileAttachment = new FileAttachment();
                             fileAttachment.setId(obj.getJSONObject("file").getString("_id"));
-                            fileAttachment.setTitle(attachment.getString("title").substring(15));
-                            fileAttachment.setDescription(attachment.getString("description"));
+                            fileAttachment.setTitle(attachment.getString("title"));
+                            fileAttachment.setDescription(""); //attachment.getString("description"));
                             fileAttachment.setLink(attachment.getString("title_link"));
                             message.setFileAttachmentId(fileAttachment.getId());
                             message.setMessageContent(fileAttachment.getTitle());
+                            if (message.getSenderId().equals(currentUser.getUserId())) {
+                                Thread.sleep(1000);
+                                logger.debug("check map " + fileAttachment.getId());
+                                String localMsgId = ChatPanel.getContext().localRemoteUploadMessageIdMap
+                                        .getOrDefault(fileAttachment.getId(), "");
+                                logger.debug("got mapped " + localMsgId);
+                                if (!"".equals(localMsgId)) {
+                                    // 查找是否有临时以FildId作为MessageId的消息
+                                    Message tempMsg = messageService.findById(localMsgId);
 
-                            // 查找是否有临时以FildId作为MessageId的消息
-                            Message tempMsg = messageService.findById(fileAttachment.getId());
+                                    if (tempMsg != null) {
+                                        myUploadFile = true;
+                                        FileAttachment fa = fileAttachmentService.findById(tempMsg.getFileAttachmentId());
+                                        fileAttachment.setTitle(fa.getTitle());
+                                        fileAttachment.setLink(fa.getLink());
+                                        fileAttachment.setDescription(fa.getDescription());
 
-                            if (tempMsg != null)
-                            {
-                                myUploadFile = true;
-                                FileAttachment fa = fileAttachmentService.findById(tempMsg.getFileAttachmentId());
-                                fileAttachment.setTitle(fa.getTitle());
-                                fileAttachment.setLink(fa.getLink());
-                                fileAttachment.setDescription(fa.getDescription());
-
-                                message.setNeedToResend(false);
-                                message.setTimestamp(tempMsg.getTimestamp());
+                                        message.setNeedToResend(false);
+                                        message.setTimestamp(tempMsg.getTimestamp());
 
 
-                                // 删除临时文件消息
-                                messageService.delete(fileAttachment.getId());
+                                        // 删除临时文件消息
+                                        messageService.delete(localMsgId);
+                                        ChatPanel.getContext().localRemoteUploadMessageIdMap.remove(fileAttachment.getId());
+                                    }
+                                }
                             }
 
                             fileAttachmentService.insertOrUpdate(fileAttachment);
@@ -228,8 +207,7 @@ public class StreamRoomMessagesHandler implements CollectionHandler
             }
 
             // 如果是我上传的文件，则消息的发送时间以本地发送时间为准，其他消息以服务器的时间为准
-            if (!myUploadFile)
-            {
+            if (!myUploadFile) {
                 message.setTimestamp(obj.getJSONObject("ts").getLong("$date"));
             }
 
@@ -240,13 +218,10 @@ public class StreamRoomMessagesHandler implements CollectionHandler
             room.setMsgSum(room.getMsgSum() + 1);
 
             // 如果没有打开房间，则需要更新未读消息数，如果已经在房间中了，则无需更新未读消息数
-            if (inChatRoom || myUploadFile)
-            {
+            if (inChatRoom || myUploadFile) {
                 room.setUnreadCount(0);
                 room.setTotalReadCount(room.getMsgSum());
-            }
-            else
-            {
+            } else {
                 room.setUnreadCount(room.getUnreadCount() + 1);
             }
 
@@ -261,8 +236,7 @@ public class StreamRoomMessagesHandler implements CollectionHandler
             param.put("size", message.getTimestamp() + "");
             param.put("unreadCount", room.getUnreadCount() + "");*/
 
-            if (myUploadFile)
-            {
+            if (myUploadFile) {
                 // 继续上传后面的文件
                 ChatPanel.getContext().dequeueAndUpload();
             }
@@ -271,8 +245,9 @@ public class StreamRoomMessagesHandler implements CollectionHandler
             notifyMainFrame(message, myUploadFile);
 
 
-        } catch (JSONException e)
-        {
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -280,8 +255,7 @@ public class StreamRoomMessagesHandler implements CollectionHandler
     /**
      * 通知程序主窗口进行相应的提示，如发送声音、图标闪动等
      */
-    private void notifyMainFrame(Message message, boolean myUploadFile)
-    {
+    private void notifyMainFrame(Message message, boolean myUploadFile) {
         // 更新房间列表
         //RoomsPanel.getContext().notifyDataSetChanged(true);
         RoomsPanel.getContext().updateRoomsList(message);
@@ -289,25 +263,17 @@ public class StreamRoomMessagesHandler implements CollectionHandler
 
 
         MainFrame context = MainFrame.getContext();
-        // 如果主窗口没有显示
-        if (!context.isVisible())
-        {
+        // 如果主窗口没有激活
+        if (!context.isActive()) {
             // 发送通知
-            if (!message.getSenderId().equals(currentUser.getUserId()))
-            {
+            if (!message.getSenderId().equals(currentUser.getUserId())) {
                 // 苹果系统
-                if (OSUtil.getOsType() == OSUtil.Mac_OS)
-                {
+                if (OSUtil.getOsType() == OSUtil.Mac_OS) {
                     sendNotification(message, OSUtil.Mac_OS);
-                }
-                else if (OSUtil.getOsType() == OSUtil.Linux)
-                {
+                } else if (OSUtil.getOsType() == OSUtil.Linux) {
                     sendNotification(message, OSUtil.Linux);
-                }
-                else
-                {
-                    if (!context.isTrayFlashing())
-                    {
+                } else {
+                    if (!context.isTrayFlashing()) {
                         context.setTrayFlashing();
                     }
 
@@ -316,24 +282,16 @@ public class StreamRoomMessagesHandler implements CollectionHandler
             }
         }
         // 主窗口已显示
-        else
-        {
+        else {
             // 窗体打开，但没有被激活
-            if (!context.isActive())
-            {
+            if (!context.isActive()) {
                 // 发送通知
-                if (!message.getSenderId().equals(currentUser.getUserId()))
-                {
-                    if (OSUtil.getOsType() == OSUtil.Mac_OS)
-                    {
+                if (!message.getSenderId().equals(currentUser.getUserId())) {
+                    if (OSUtil.getOsType() == OSUtil.Mac_OS) {
                         sendNotification(message, OSUtil.Mac_OS);
-                    }
-                    else if (OSUtil.getOsType() == OSUtil.Linux)
-                    {
+                    } else if (OSUtil.getOsType() == OSUtil.Linux) {
                         sendNotification(message, OSUtil.Linux);
-                    }
-                    else
-                    {
+                    } else {
                         // 任务栏图标高亮
                         context.playMessageSound();
                         context.setVisible(true);
@@ -344,19 +302,16 @@ public class StreamRoomMessagesHandler implements CollectionHandler
         }
 
         // 如果是当前打开的房间，更新消息列表
-        if (inChatRoom)
-        {
+        if (inChatRoom) {
             // 如果是刚刚自己上传的文件，提示UI不要再把这条消息加入到消息列表中，防止消息重复出现
-            if (!myUploadFile)
-            {
+            if (!myUploadFile) {
                 ChatPanel.getContext().addOrUpdateMessageItem();
             }
         }
 
 
         // 更新总消息数，MAC系统中dock中的Badge
-        if (OSUtil.getOsType() == OSUtil.Mac_OS)
-        {
+        if (OSUtil.getOsType() == OSUtil.Mac_OS) {
             ChatPanel.getContext().updateTotalUnreadCount();
         }
     }
@@ -367,37 +322,28 @@ public class StreamRoomMessagesHandler implements CollectionHandler
      * @param message
      * @param osType
      */
-    private void sendNotification(Message message, int osType)
-    {
+    private void sendNotification(Message message, int osType) {
         // 发送通知
-        if (!message.getSenderId().equals(currentUser.getUserId()))
-        {
+        if (!message.getSenderId().equals(currentUser.getUserId())) {
             String t = EmojiParser.parseToUnicode(message.getMessageContent());
 
-            if (osType == OSUtil.Mac_OS)
-            {
+            if (osType == OSUtil.Mac_OS) {
                 MacNotificationUtil.sendNotification(message.getSenderUsername(), "", t, 1);
-            }
-            else if (osType == OSUtil.Linux)
-            {
-                try
-                {
+            } else if (osType == OSUtil.Linux) {
+                try {
                     File iconFile;
                     String iconPath = AvatarUtil.CUSTOM_AVATAR_CACHE_ROOT + "/" + message.getSenderUsername() + ".png";
                     iconFile = new File(iconPath);
-                    if (!iconFile.exists())
-                    {
+                    if (!iconFile.exists()) {
                         iconPath = AvatarUtil.AVATAR_CACHE_ROOT + "/" + message.getSenderUsername() + ".png";
                         iconFile = new File(iconPath);
-                        if (!iconFile.exists())
-                        {
+                        if (!iconFile.exists()) {
                             iconPath = ShellUtil.ICON_PATH;
                         }
                     }
 
                     ShellUtil.executeShell("notify-send " + message.getSenderUsername() + " \"" + t + "\" -i " + iconPath);
-                } catch (IOException e)
-                {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
