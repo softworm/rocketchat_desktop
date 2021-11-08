@@ -16,18 +16,13 @@ import com.rc.tasks.HttpPostTask;
 import com.rc.tasks.HttpResponseListener;
 import com.rc.utils.AvatarUtil;
 import com.rc.utils.FontUtil;
-import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -493,7 +488,7 @@ public class RoomMembersPanel extends ParentAvailablePanel
     {
         try
         {
-            String type = "";
+            /*String type = "";
             if (retJson.has("channel"))
             {
                 type = "channel";
@@ -502,14 +497,15 @@ public class RoomMembersPanel extends ParentAvailablePanel
             {
                 type = "group";
             }
-            else if (retJson.has("error"))
+            else*/
+            if (retJson.has("error"))
             {
                 JOptionPane.showMessageDialog(null, "添加成员失败！", "添加成员失败", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             else
             {
-                // 移除成员时，只收到成员通知
+                // 邀请、移除成员时，只收到成员通知
                 if (retJson.has("success"))
                 {
                     ChatPanel.getContext().loadRemoteRoomMembers();
@@ -517,7 +513,8 @@ public class RoomMembersPanel extends ParentAvailablePanel
                 return;
             }
 
-            JSONObject obj = retJson.getJSONObject(type);
+            //邀请未返回成员名单，取消以下逻辑
+            /*JSONObject obj = retJson.getJSONObject(type);
             JSONArray usernames = obj.getJSONArray("usernames");
             List<String> users = new ArrayList<>();
             for (int i = 0; i < usernames.length(); i++)
@@ -539,7 +536,7 @@ public class RoomMembersPanel extends ParentAvailablePanel
 
             // 重新生成群头像
             System.out.println("删除原来群头像: " + room.getName());
-            AvatarUtil.deleteGroupAvatar(room.getName());
+            AvatarUtil.deleteGroupAvatar(room.getName());*/
 
         } catch (JSONException e)
         {
