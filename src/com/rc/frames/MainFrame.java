@@ -137,6 +137,7 @@ public class MainFrame extends JFrame
                     public void mousePressed(MouseEvent e)
                     {
                         // 显示主窗口
+                        setExtendedState(NORMAL);
                         setVisible(true);
                         setToFront();
                         super.mousePressed(e);
@@ -155,19 +156,22 @@ public class MainFrame extends JFrame
                 trayIcon.addMouseListener(new MouseAdapter()
                 {
                     @Override
-                    public void mouseClicked(MouseEvent e)
+                    public void mouseReleased(MouseEvent e)
                     {
-                        // 显示主窗口
-                        setVisible(true);
-                        setToFront();
+                        //非右键才显示窗口
+                        if(!e.isPopupTrigger()) {
+                            // 显示主窗口
+                            setExtendedState(NORMAL);
+                            setVisible(true);
+                            setToFront();
 
-                        // 任务栏图标停止闪动
-                        if (trayFlashing)
-                        {
-                            trayFlashing = false;
-                            trayIcon.setImage(normalTrayIcon);
+                            // 任务栏图标停止闪动
+                            if (trayFlashing) {
+                                trayFlashing = false;
+                                trayIcon.setImage(normalTrayIcon);
+                            }
                         }
-                        super.mouseClicked(e);
+                        super.mouseReleased(e);
                     }
                 });
 
@@ -182,12 +186,13 @@ public class MainFrame extends JFrame
                     }
                 });
 
-                MenuItem showItem = new MenuItem("打开和理通");
+                MenuItem showItem = new MenuItem("显示窗口");
                 showItem.addActionListener(new ActionListener()
                 {
                     @Override
                     public void actionPerformed(ActionEvent e)
                     {
+                        setExtendedState(NORMAL);
                         setVisible(true);
                         setToFront();
                     }
