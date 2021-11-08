@@ -312,6 +312,7 @@ public class LoginFrame extends JFrame
             CurrentUser currentUser = new CurrentUser();
             currentUser.setUserId(userId);
             currentUser.setAuthToken(authToken);
+            currentUser.setExpireDate(String.valueOf(System.currentTimeMillis() + 86400000));
             currentUser.setRawPassword(new String(passwordField.getPassword()));
             currentUser.setPassword(PasswordUtil.encryptPassword(currentUser.getRawPassword()));
             currentUser.setUsername(usernameField.getText());
