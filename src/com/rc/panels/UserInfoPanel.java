@@ -23,7 +23,7 @@ import java.awt.event.MouseEvent;
  * Created by song on 2017/6/15.
  *
  * <p>下图 #UserInfoPanel# 对应的位置</p>
- *
+ * <p>
  * 当在通讯录中选定某个用户时，UserInfoPanel会显示该用户的详细信息
  *
  * <P>推荐使用Menlo或Consolas字体</P>
@@ -51,8 +51,7 @@ import java.awt.event.MouseEvent;
  * │                        │                                                        │
  * └────────────────────────┴────────────────────────────────────────────────────────┘
  */
-public class UserInfoPanel extends ParentAvailablePanel
-{
+public class UserInfoPanel extends ParentAvailablePanel {
     private JPanel contentPanel;
     private JLabel imageLabel;
     private JLabel nameLabel;
@@ -62,21 +61,19 @@ public class UserInfoPanel extends ParentAvailablePanel
     private RoomService roomService = Launcher.roomService;
     private ContactsUserService contactsUserService = Launcher.contactsUserService;
 
-    public UserInfoPanel(JPanel parent)
-    {
+    public UserInfoPanel(JPanel parent) {
         super(parent);
         initComponents();
         initView();
         setListeners();
     }
 
-    private void initComponents()
-    {
+    private void initComponents() {
         contentPanel = new JPanel();
         contentPanel.setLayout(new VerticalFlowLayout(VerticalFlowLayout.CENTER, 0, 20, true, false));
 
         imageLabel = new JLabel();
-        ImageIcon icon = new ImageIcon(AvatarUtil.createOrLoadUserAvatar("song").getScaledInstance(100,100, Image.SCALE_SMOOTH));
+        ImageIcon icon = new ImageIcon(AvatarUtil.createOrLoadUserAvatar("song").getScaledInstance(100, 100, Image.SCALE_SMOOTH));
         imageLabel.setIcon(icon);
 
         nameLabel = new JLabel();
@@ -90,8 +87,7 @@ public class UserInfoPanel extends ParentAvailablePanel
 
     }
 
-    private void initView()
-    {
+    private void initView() {
         this.setLayout(new GridBagLayout());
 
         JPanel avatarNamePanel = new JPanel();
@@ -104,45 +100,38 @@ public class UserInfoPanel extends ParentAvailablePanel
         contentPanel.add(avatarNamePanel);
         contentPanel.add(button);
 
-        add(contentPanel, new GBC(0,0).setWeight(1,1).setAnchor(GBC.CENTER).setInsets(0,0,250,0));
+        add(contentPanel, new GBC(0, 0).setWeight(1, 1).setAnchor(GBC.CENTER).setInsets(0, 0, 250, 0));
     }
 
-    public void setUsername(String username)
-    {
+    public void setUsername(String username) {
         this.username = username;
         nameLabel.setText(username);
 
-        ImageIcon icon = new ImageIcon(AvatarUtil.createOrLoadUserAvatar(username).getScaledInstance(100,100, Image.SCALE_SMOOTH));
+        ImageIcon icon = new ImageIcon(AvatarUtil.createOrLoadUserAvatar(username).getScaledInstance(100, 100, Image.SCALE_SMOOTH));
         imageLabel.setIcon(icon);
     }
 
-    private void setListeners()
-    {
-        button.addMouseListener(new MouseAdapter()
-        {
+    private void setListeners() {
+        button.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e)
-            {
-
+            public void mouseClicked(MouseEvent e) {
+                TabOperationPanel.getContext().switchToChatPanel();
                 openOrCreateDirectChat();
                 super.mouseClicked(e);
             }
         });
     }
 
-    private void openOrCreateDirectChat()
-    {
-        ContactsUser user  = contactsUserService.find("username", username).get(0);
+    private void openOrCreateDirectChat() {
+        ContactsUser user = contactsUserService.find("username", username).get(0);
         String userId = user.getUserId();
         Room room = roomService.findRelativeRoomIdByUserId(userId);
 
         // 房间已存在，直接打开，否则发送请求创建房间
-        if (room != null)
-        {
+        if (room != null) {
             ChatPanel.getContext().enterRoom(room.getRoomId());
-        }else
-        {
-            createDirectChat(user.getName());
+        } else {
+            createDirectChat(user.getUsername());
         }
     }
 
@@ -151,11 +140,9 @@ public class UserInfoPanel extends ParentAvailablePanel
      *
      * @param username
      */
-    private void createDirectChat(String username)
-    {
+    private void createDirectChat(String username) {
         WebSocketClient.getContext().createDirectChat(username);
     }
-
 
 
 }
