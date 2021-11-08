@@ -38,6 +38,7 @@ public class MessageRightImageViewHolder extends BaseMessageViewHolder
         messageAvatarPanel.setBackground(Colors.WINDOW_BACKGROUND);
 
         imageBubble.add(image);
+        imageBubble.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         time.setForeground(Colors.FONT_GRAY);
         time.setFont(FontUtil.getDefaultFont(12));
