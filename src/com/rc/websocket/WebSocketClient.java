@@ -540,17 +540,17 @@ public class WebSocketClient
         String roomType = "";
         if (type.equals("channels"))
         {
-            api = "channels.list.joined.base";
+            api = "channels.list.joined";
             roomType = "c";
         }
         else if (type.equals("groups"))
         {
-            api = "groups.list.base";
+            api = "groups.list";
             roomType = "p";
         }
         else if (type.equals("ims"))
         {
-            api = "im.list.base";
+            api = "im.list";
             roomType = "d";
         }
         else
@@ -613,13 +613,13 @@ public class WebSocketClient
                             if (obj.has("usernames"))
                             {
                                 JSONArray usernameArr = obj.getJSONArray("usernames");
-                                if (usernameArr.get(0).equals(currentUsername))
-                                {
-                                    room.setName(usernameArr.get(1).toString());
-                                }
-                                else
-                                {
-                                    room.setName(usernameArr.get(0).toString());
+                                // channel里面有空数组，排除掉它
+                                if(usernameArr.length() > 0) {
+                                    if (usernameArr.get(0).equals(currentUsername)) {
+                                        room.setName(usernameArr.get(1).toString());
+                                    } else {
+                                        room.setName(usernameArr.get(0).toString());
+                                    }
                                 }
                             }
                             room.setType(finalRoomType);
@@ -904,7 +904,7 @@ public class WebSocketClient
                             ImageAttachment imageAttachment = new ImageAttachment();
                             imageAttachment.setId(message.getJSONObject("file").getString("_id"));
                             imageAttachment.setTitle(attachment.getString("title"));
-                            imageAttachment.setDescription(attachment.getString("description"));
+                            imageAttachment.setDescription(""); //attachment.getString("description"));
                             imageAttachment.setImageUrl(attachment.getString("image_url"));
                             imageAttachment.setImagesize(attachment.getLong("image_size"));
                             //imageAttachment.setWidth(attachment.getJSONObject("image_dimensions").getInt("width"));
@@ -920,8 +920,8 @@ public class WebSocketClient
                         {
                             FileAttachment fileAttachment = new FileAttachment();
                             fileAttachment.setId(message.getJSONObject("file").getString("_id"));
-                            fileAttachment.setTitle(attachment.getString("title").substring(15));
-                            fileAttachment.setDescription(attachment.getString("description"));
+                            fileAttachment.setTitle(attachment.getString("title"));
+                            fileAttachment.setDescription(""); //attachment.getString("description"));
                             fileAttachment.setLink(attachment.getString("title_link"));
                             //dbMessage.getFileAttachments().add(fileAttachment);
                             dbMessage.setFileAttachmentId(fileAttachment.getId());
@@ -1014,13 +1014,13 @@ public class WebSocketClient
                         {
                             JSONObject user = userArray.getJSONObject(i);
 
-                            // 忽略自己
-                            if (user.getString("_id").equals(currentUserId))
+                            // 忽略自己、未激活
+                            if (user.getString("_id").equals(currentUserId) || !user.getBoolean("active"))
                             {
                                 continue;
                             }
 
-                            ContactsUser contactsUser = new ContactsUser(user.getString("_id"), user.getString("username"), user.getString("name"));
+                            ContactsUser contactsUser = new ContactsUser(user.getString("_id"), user.getString("username"), user.getString("nameInsensitive"));
                             //contactsUserService.insertOrUpdate(Realm.getDefaultInstance(), contactsUser);
                             contactsUserService.insert(contactsUser);
                         }
@@ -1044,7 +1044,7 @@ public class WebSocketClient
             }
         });
 
-        task.execute(hostname + "/api/v1/users.list.base?count=1000");
+        task.execute(hostname + "/api/v1/users.list?count=1000");
     }
 
     /**
@@ -1059,7 +1059,7 @@ public class WebSocketClient
         subscriptionHelper.subscriptionUserOtr(currentUserId);
         subscriptionHelper.subscriptionUserRoomsChanged(currentUserId);
         subscriptionHelper.subscriptionUsersubscriptionsChanged(currentUserId);
-        subscriptionHelper.subscriptionUserData();
+        //subscriptionHelper.subscriptionUserData();
     }
 
     /**
