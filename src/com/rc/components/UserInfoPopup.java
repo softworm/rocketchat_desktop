@@ -140,7 +140,7 @@ public class UserInfoPopup extends JPopupMenu
             ChatPanel.getContext().enterRoom(room.getRoomId());
         }else
         {
-            createDirectChat(user.getName());
+            createDirectChat(user.getUsername());
         }
 
         this.setVisible(false);
