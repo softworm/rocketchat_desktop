@@ -2,6 +2,7 @@ package com.rc.utils;
 
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
@@ -18,12 +19,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import okhttp3.FormBody;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 
 
 public class HttpUtil
@@ -144,6 +140,26 @@ public class HttpUtil
         }
     }
 
+    public static String postJson(String url, Map<String, String> headers, String json) throws IOException
+    {
+        RequestBody requestBodyPost = RequestBody.create(MediaType.parse("application/json"), json);
+
+        Request.Builder reqBuilder = new Request.Builder().url(url);
+        if (headers != null && headers.size() > 0)
+        {
+            for (String key : headers.keySet())
+            {
+                reqBuilder.addHeader(key, headers.get(key));
+            }
+        }
+        Request requestPost = reqBuilder.post(requestBodyPost).build();
+
+        try(Response response = client.newCall(requestPost).execute())
+        {
+            return response.body().string();
+        }
+    }
+
     public static boolean upload(String url, String type, byte[] part) throws IOException
     {
         Request request = new Request.Builder()
@@ -158,6 +174,35 @@ public class HttpUtil
         }
 
         return false;
+    }
+
+    public static String uploadFormData(String url, Map<String, String> headers, Map<String, String> params,
+                                        String type, File file) throws IOException {
+        RequestBody fileBody = RequestBody.create(MediaType.parse(type), file);
+
+        MultipartBody.Builder builder = new MultipartBody.Builder();
+        builder.setType(MultipartBody.FORM);
+        builder.addFormDataPart("file", file.getName(), fileBody);
+        for (String key : params.keySet())
+        {
+            builder.addFormDataPart(key, params.get(key));
+        }
+        RequestBody requestBodyPost = builder.build();
+
+        Request.Builder reqBuilder = new Request.Builder().url(url);
+        if (headers != null && headers.size() > 0)
+        {
+            for (String key : headers.keySet())
+            {
+                reqBuilder.addHeader(key, headers.get(key));
+            }
+        }
+        Request requestPost = reqBuilder.post(requestBodyPost).build();
+
+        try(Response response = client.newCall(requestPost).execute())
+        {
+            return response.body().string();
+        }
     }
 
     public static byte[] download(String url) throws IOException
