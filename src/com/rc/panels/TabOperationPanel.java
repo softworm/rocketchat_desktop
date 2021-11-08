@@ -54,14 +54,18 @@ public class TabOperationPanel extends ParentAvailablePanel
     private ImageIcon meIconActive;
 
     private LeftPanel parent;
+    private static TabOperationPanel context;
 
     public TabOperationPanel(JPanel parent)
     {
         super(parent);
 
+        context = this;
         initComponents();
         initView();
     }
+
+    public static TabOperationPanel getContext(){ return context; }
 
     private void initComponents()
     {
@@ -129,12 +133,7 @@ public class TabOperationPanel extends ParentAvailablePanel
 
                 if (e.getComponent() == chatLabel)
                 {
-                    chatLabel.setIcon(chatIconActive);
-                    contactsLabel.setIcon(contactIconNormal);
-                    meLable.setIcon(meIconNormal);
-                    parent.getListPanel().showPanel(ListPanel.CHAT);
-                    RightPanel.getContext().showPanel(RightPanel.TIP);
-
+                    switchToChatPanel();
                 }
                 else if (e.getComponent() == contactsLabel)
                 {
@@ -158,5 +157,13 @@ public class TabOperationPanel extends ParentAvailablePanel
                 }
             }
         }
+    }
+
+    public void switchToChatPanel(){
+        chatLabel.setIcon(chatIconActive);
+        contactsLabel.setIcon(contactIconNormal);
+        meLable.setIcon(meIconNormal);
+        parent.getListPanel().showPanel(ListPanel.CHAT);
+        RightPanel.getContext().showPanel(RightPanel.TIP);
     }
 }
